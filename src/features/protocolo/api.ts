@@ -47,6 +47,45 @@ export type GuardarProtocolo = {
   tipos: TipoDeSuceso[]
 }
 
+export type TipoDePropuesta =
+  | 'AJUSTAR_UMBRAL'
+  | 'CAMBIAR_PREGUNTA'
+  | 'CAMBIAR_RESPUESTA'
+  | 'AGREGAR_CONDICION'
+  | 'QUITAR_CONDICION'
+  | 'OTRA'
+
+/** Una mejora que propone el analista, con los hechos y las citas de la norma en que se apoya. */
+export type PropuestaDelAnalista = {
+  tipo: TipoDePropuesta
+  tipoDeSuceso: string
+  condicion: string | null
+  propuesta: string
+  porQue: string
+  hechos: string[]
+  norma: string[]
+}
+
+/**
+ * `RevisionResponse` del backend: una revisión del protocolo hecha por el analista. Corre en segundo plano:
+ * `propuestas` llega cuando termina. Ninguna propuesta cambia el protocolo.
+ */
+export type RevisionDelProtocolo = {
+  id: number
+  estado: 'PENDIENTE' | 'EN_CURSO' | 'HECHA' | 'FALLIDA'
+  versionDelProtocolo: number
+  creadaEn: string
+  terminadaEn: string | null
+  proveedor: string | null
+  modelo: string | null
+  /** Por qué no hay propuestas, cuando no las hay. */
+  nota: string | null
+  /** Cuántas propuestas se descartaron por no tener respaldo suficiente. */
+  descartadas: number
+  hechos: { id: string; tipoDeSuceso: string; condicion: string | null; texto: string; casos: number }[] | null
+  propuestas: PropuestaDelAnalista[] | null
+}
+
 /** El backend responde 404 cuando no hay ninguno: acá eso es `null`, no un error. */
 async function oNada<T>(pedido: Promise<T>): Promise<T | null> {
   try {
@@ -68,4 +107,8 @@ export const protocoloApi = {
   /** El borrador pasa a ser el vigente y el anterior queda retirado. */
   publicarBorrador: () => api.post<Protocolo>('/protocolos/borrador/publicacion'),
   descartarBorrador: () => api.borrar<void>('/protocolos/borrador'),
+  /** Las últimas revisiones del analista, de la más nueva a la más vieja. */
+  revisiones: (signal?: AbortSignal) => api.get<RevisionDelProtocolo[]>('/protocolos/revisiones', signal),
+  /** 409 `ANALISTA_NO_DISPONIBLE` si el analista está apagado. */
+  pedirRevision: () => api.post<RevisionDelProtocolo>('/protocolos/revisiones'),
 }
