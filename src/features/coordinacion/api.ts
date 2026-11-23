@@ -1,4 +1,5 @@
 import { api } from '../../shared/api/cliente'
+import type { Prioridad } from '../../shared/prioridad/prioridad'
 
 export type ModoDeDespacho = 'DIFUSION' | 'ASIGNACION'
 
@@ -53,6 +54,16 @@ export type DetalleDeDerivacion = {
   tipoMinimoRequerido?: string
   propuesta?: string
   justificacion?: string
+  /** La prioridad del incidente cuando le falta una unidad. */
+  prioridad?: Prioridad
+  /** Las unidades que atienden un caso menos urgente que este. Moverlas lo decide una persona. */
+  unidadesEnCasosMenores?: {
+    incidenteId: number
+    placa: string
+    tipoUnidad: string
+    estado: string
+    prioridad?: Prioridad
+  }[]
 }
 
 /** `DerivacionResponse` del backend: un asunto que el sistema le pasó a la central para que lo decida una persona. */
@@ -77,6 +88,8 @@ export type Derivacion = {
   evaluacionId: number | null
   /** Espera respuesta, o venció y nadie la marcó como vista. */
   necesitaAtencion: boolean
+  /** La del incidente. Las más urgentes llegan primero. */
+  prioridad: Prioridad | null
 }
 
 export const coordinacionApi = {

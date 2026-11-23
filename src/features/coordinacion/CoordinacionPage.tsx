@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Button, H2, Input, Label, Paragraph, Spinner, Text, XStack, YStack, useToastController } from 'tamagui'
 import { codigoDeError, mensajeDeError } from '../../shared/api/cliente'
 import { fechaHoraCorta } from '../../shared/formato/fechas'
+import { InsigniaPrioridad } from '../../shared/prioridad/InsigniaPrioridad'
 import { useAhora } from '../../shared/reloj/useAhora'
 import { BotonPrimario } from '../../shared/ui/botones'
 import { EncabezadoPagina } from '../../shared/ui/EncabezadoPagina'
@@ -164,6 +165,7 @@ function TarjetaDeDerivacion({ derivacion, ahora }: { derivacion: Derivacion; ah
             {TITULO_DEL_MOTIVO[derivacion.motivo]}
           </Text>
           <EnlaceAlIncidente incidenteId={derivacion.incidenteId} />
+          {derivacion.prioridad ? <InsigniaPrioridad prioridad={derivacion.prioridad} /> : null}
         </XStack>
         {vencida ? (
           <Insignia tono="gris">Venció sin respuesta</Insignia>

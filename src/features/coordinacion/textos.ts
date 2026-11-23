@@ -48,6 +48,11 @@ export function explicacionDe({ motivo, detalle }: Derivacion): string[] {
       )
     }
     lineas.push('El incidente ya se abrió a todas las unidades de turno.')
+    for (const unidad of detalle.unidadesEnCasosMenores ?? []) {
+      lineas.push(
+        `La unidad ${unidad.placa} (tipo ${unidad.tipoUnidad}) está en el incidente #${unidad.incidenteId}, que es menos urgente. Moverla lo decides tú.`,
+      )
+    }
     return lineas
   }
   if (motivo === 'PROPUESTA_DEL_AGENTE') {

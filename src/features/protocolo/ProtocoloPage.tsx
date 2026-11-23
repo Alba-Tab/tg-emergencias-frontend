@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Button, H2, Input, Label, Paragraph, Spinner, Text, XStack, YStack, useToastController } from 'tamagui'
 import { mensajeDeError } from '../../shared/api/cliente'
 import { fechaHoraCorta } from '../../shared/formato/fechas'
+import { CODIGO_DE_PRIORIDAD, NOMBRE_DE_PRIORIDAD, type Prioridad } from '../../shared/prioridad/prioridad'
 import { BotonPrimario } from '../../shared/ui/botones'
 import { DialogoConfirmacion } from '../../shared/ui/DialogoConfirmacion'
 import { ElegibleCompacto } from '../../shared/ui/ElegibleCompacto'
@@ -21,6 +22,7 @@ import {
 } from './queries'
 
 const TIPOS_DE_UNIDAD: (TipoUnidad | null)[] = [null, 'IA', 'II', 'III']
+const PRIORIDADES_ELEGIBLES: (Prioridad | null)[] = [null, 'VERDE', 'AMARILLA', 'ROJA']
 const CODIGO = /^[A-Z][A-Z0-9_]{1,59}$/
 
 /** Lo mismo que una condición, pero con los números como texto mientras se escriben. */
@@ -44,6 +46,7 @@ const CONDICION_NUEVA: CondicionEnEdicion = {
   derivaAPersona: false,
   cita: '',
   afectadosDesde: '',
+  prioridad: null,
 }
 
 function enEdicion(tipos: TipoDeSuceso[]): TipoEnEdicion[] {
@@ -55,8 +58,11 @@ function enEdicion(tipos: TipoDeSuceso[]): TipoEnEdicion[] {
       cita: condicion.cita ?? '',
       umbralActuar: String(condicion.umbralActuar),
       umbralPreguntar: String(condicion.umbralPreguntar),
-      unidadesAdicionales: String(condicion.unidadesAdicionales),
+      unidadesAdicionales: String(condicion.unidadesAdicionales ?? 0),
+      tipoMinimo: condicion.tipoMinimo ?? null,
+      derivaAPersona: condicion.derivaAPersona ?? false,
       afectadosDesde: condicion.afectadosDesde == null ? '' : String(condicion.afectadosDesde),
+      prioridad: condicion.prioridad ?? null,
     })),
   }))
 }
@@ -103,6 +109,7 @@ function paraGuardar(nota: string, tipos: TipoEnEdicion[]): { datos: GuardarProt
         derivaAPersona: condicion.derivaAPersona,
         cita: condicion.cita?.trim() || null,
         afectadosDesde: afectados,
+        prioridad: condicion.prioridad,
       })
     }
     resultado.push({ codigo: tipo.codigo, nombre: tipo.nombre.trim(), condiciones })
@@ -236,6 +243,11 @@ function respuestaDe(condicion: Condicion) {
   if (condicion.tipoMinimo) {
     partes.push(`pide una unidad de tipo ${condicion.tipoMinimo}`)
   }
+  if (condicion.prioridad) {
+    partes.push(
+      `toma prioridad ${NOMBRE_DE_PRIORIDAD[condicion.prioridad].toLowerCase()} (${CODIGO_DE_PRIORIDAD[condicion.prioridad]})`,
+    )
+  }
   if (condicion.derivaAPersona) {
     partes.push('la ve una persona')
   }
@@ -252,6 +264,25 @@ function EditorDelBorrador({ borrador }: { borrador: Protocolo }) {
   const [tipos, setTipos] = useState(() => enEdicion(borrador.tipos))
   const [confirmando, setConfirmando] = useState<'publicar' | 'descartar' | null>(null)
   const ocupado = guardar.isPending || publicar.isPending || descartar.isPending
+  const archivo = useRef<HTMLInputElement>(null)
+
+  /** Pone en pantalla el protocolo de un archivo, con el mismo formato en que se guarda. No guarda nada. */
+  async function cargarArchivo(elegido: File | undefined) {
+    if (!elegido) {
+      return
+    }
+    try {
+      const datos = JSON.parse(await elegido.text()) as Partial<GuardarProtocolo>
+      if (!Array.isArray(datos.tipos)) {
+        throw new Error('sin tipos')
+      }
+      setNota(datos.nota ?? '')
+      setTipos(enEdicion(datos.tipos.map((tipo) => ({ ...tipo, condiciones: tipo.condiciones ?? [] }))))
+      toast.show('Protocolo cargado en el borrador', { message: 'Revísalo y guarda: todavía no se guardó nada.' })
+    } catch {
+      toast.show('No se pudo leer el archivo', { message: 'Tiene que ser un protocolo en formato JSON.' })
+    }
+  }
 
   function cambiarTipo(indice: number, cambios: Partial<TipoEnEdicion>) {
     setTipos((actuales) => actuales.map((tipo, i) => (i === indice ? { ...tipo, ...cambios } : tipo)))
@@ -308,6 +339,19 @@ function EditorDelBorrador({ borrador }: { borrador: Protocolo }) {
           <Insignia tono="ambar">{`Versión ${borrador.version}, sin publicar`}</Insignia>
         </XStack>
         <XStack gap={8} flexWrap="wrap">
+          <input
+            ref={archivo}
+            type="file"
+            accept="application/json,.json"
+            hidden
+            onChange={(evento) => {
+              void cargarArchivo(evento.currentTarget.files?.[0])
+              evento.currentTarget.value = ''
+            }}
+          />
+          <Button size="$3" disabled={ocupado} onPress={() => archivo.current?.click()}>
+            <Button.Text color="$texto">Cargar desde un archivo</Button.Text>
+          </Button>
           <Button size="$3" disabled={ocupado} onPress={() => setConfirmando('descartar')}>
             <Button.Text color="$texto">Descartar</Button.Text>
           </Button>
@@ -372,6 +416,19 @@ function EditorDelBorrador({ borrador }: { borrador: Protocolo }) {
                       texto={opcion ?? 'Cualquiera'}
                       elegida={condicion.tipoMinimo === opcion}
                       onElegir={() => cambiarCondicion(indiceTipo, indice, { tipoMinimo: opcion })}
+                    />
+                  ))}
+                </XStack>
+                <XStack gap={6} items="center" role="radiogroup" aria-label="Prioridad que toma el caso">
+                  <Text fontSize={13} fontWeight="500" color="$texto">
+                    Prioridad
+                  </Text>
+                  {PRIORIDADES_ELEGIBLES.map((opcion) => (
+                    <ElegibleCompacto
+                      key={opcion ?? 'ninguna'}
+                      texto={opcion ? NOMBRE_DE_PRIORIDAD[opcion] : 'No la cambia'}
+                      elegida={condicion.prioridad === opcion}
+                      onElegir={() => cambiarCondicion(indiceTipo, indice, { prioridad: opcion })}
                     />
                   ))}
                 </XStack>

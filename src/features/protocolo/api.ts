@@ -1,4 +1,5 @@
 import { api, ErrorApi } from '../../shared/api/cliente'
+import type { Prioridad } from '../../shared/prioridad/prioridad'
 
 export type TipoUnidad = 'IA' | 'II' | 'III'
 
@@ -19,6 +20,8 @@ export type Condicion = {
   cita: string | null
   /** Si tiene valor, la condición se cumple cuando los afectados declarados llegan a esa cantidad. */
   afectadosDesde: number | null
+  /** La prioridad que como mínimo toma el caso cuando la condición se cumple. Null si no la cambia. */
+  prioridad: Prioridad | null
 }
 
 export type TipoDeSuceso = {
