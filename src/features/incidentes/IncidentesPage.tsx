@@ -12,6 +12,7 @@ import { useResumenesPublicados } from '../resumen-ia/avisos'
 import { MarcaResumenIa } from '../resumen-ia/MarcaResumenIa'
 import { estaAbierto, type FiltroEstadoIncidente, type IncidenteResumen } from './api'
 import { esFiltro, FILTROS, type BusquedaIncidentes } from './busqueda'
+import { InsigniaPrioridad } from '../../shared/prioridad/InsigniaPrioridad'
 import { InsigniaEstadoIncidente } from './InsigniasDeEstado'
 import { incidentesQuery } from './queries'
 import { TEXTO_FILTRO } from './textos'
@@ -199,7 +200,10 @@ function FilaIncidente({ incidente, conResumen, busqueda, ahora }: PropsFila) {
         <Text fontFamily="$mono" fontSize={13} fontWeight="500" color="$texto">
           {incidente.id}
         </Text>
-        <InsigniaEstadoIncidente estado={incidente.estado} />
+        <YStack gap={4} items="flex-start">
+          <InsigniaEstadoIncidente estado={incidente.estado} />
+          {abierto && incidente.prioridad ? <InsigniaPrioridad prioridad={incidente.prioridad} /> : null}
+        </YStack>
         <Text fontSize={14} color="$texto">
           {fechaHoraCorta(incidente.fechaHoraCreacion)}
         </Text>

@@ -6,6 +6,7 @@ import { ErrorApi } from '../../shared/api/cliente'
 import { InsigniaEstadoAtencion } from '../../shared/atencion/InsigniaEstadoAtencion'
 import { TEXTO_MOTIVO_CANCELACION_ATENCION, TEXTO_MOTIVO_SIN_TRASLADO } from '../../shared/atencion/textos'
 import { fechaHora, fechaHoraCorta, tiempoTranscurrido } from '../../shared/formato/fechas'
+import { InsigniaPrioridad } from '../../shared/prioridad/InsigniaPrioridad'
 import { useAhora } from '../../shared/reloj/useAhora'
 import { BotonPrimario } from '../../shared/ui/botones'
 import { EncabezadoPagina } from '../../shared/ui/EncabezadoPagina'
@@ -204,6 +205,11 @@ function Resumen({ incidente }: { incidente: IncidenteDetalle }) {
         <Dato etiqueta="Estado">
           <InsigniaEstadoIncidente estado={incidente.estado} />
         </Dato>
+        {incidente.prioridad ? (
+          <Dato etiqueta="Prioridad">
+            <InsigniaPrioridad prioridad={incidente.prioridad} />
+          </Dato>
+        ) : null}
         <Dato etiqueta="Primera alerta">
           <Valor>{fechaHora(incidente.fechaHoraCreacion)}</Valor>
         </Dato>
