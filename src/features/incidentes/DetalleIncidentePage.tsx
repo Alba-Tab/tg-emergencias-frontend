@@ -11,6 +11,7 @@ import { BotonPrimario } from '../../shared/ui/botones'
 import { EncabezadoPagina } from '../../shared/ui/EncabezadoPagina'
 import { Cargando, ErrorAlCargar } from '../../shared/ui/EstadosDeCarga'
 import { IconoActualizar, IconoAnterior } from '../../shared/ui/iconos'
+import { BitacoraDelIncidente } from '../bitacora/BitacoraDelIncidente'
 import { CobroDelServicio } from '../cobros/CobroDelServicio'
 import { resumenIaKeys } from '../resumen-ia/queries'
 import { ResumenIaDelIncidente } from '../resumen-ia/ResumenIaDelIncidente'
@@ -28,7 +29,7 @@ import { DialogoCerrarIncidente } from './DialogoCerrarIncidente'
 import { DialogoEnviarUnidad, type IncidenteParaEnviar } from './DialogoEnviarUnidad'
 import { InsigniaEstadoIncidente } from './InsigniasDeEstado'
 import { Dato, Nota, Seccion, Tarjeta, Valor } from './PiezasDelDetalle'
-import { incidenteQuery } from './queries'
+import { incidenteQuery, incidentesKeys } from './queries'
 import {
   TEXTO_ESTADO_ALERTA,
   TEXTO_MOTIVO_CANCELACION_ALERTA,
@@ -95,7 +96,8 @@ export function DetalleIncidentePage() {
               icon={incidente.isFetching ? <Spinner size="small" color="$textoSecundario" /> : <IconoActualizar size={16} />}
               disabled={incidente.isFetching}
               onPress={() => {
-                void incidente.refetch()
+                // Invalida el detalle y lo que cuelga de su clave, que es la bitácora.
+                void queryClient.invalidateQueries({ queryKey: incidentesKeys.detalle(incidenteId) })
                 // El resumen de la IA se actualiza solo con el aviso de Firebase, pero sin Firebase este es el camino.
                 void queryClient.invalidateQueries({ queryKey: resumenIaKeys.delIncidente(incidenteId) })
               }}
@@ -133,6 +135,7 @@ export function DetalleIncidentePage() {
           <Seccion titulo={`Atenciones (${incidente.data.atenciones.length})`}>
             <Atenciones atenciones={incidente.data.atenciones} abierto={estaAbierto(incidente.data.estado)} />
           </Seccion>
+          <BitacoraDelIncidente incidenteId={incidenteId} />
         </>
       )}
 
