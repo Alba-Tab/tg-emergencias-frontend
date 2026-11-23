@@ -41,7 +41,7 @@ export class ErrorApi extends Error {
 /** En desarrollo el proxy de Vite reenvía `/api` al backend. */
 const URL_BASE: string = import.meta.env.VITE_API_URL ?? '/api'
 
-type Metodo = 'GET' | 'POST' | 'PUT'
+type Metodo = 'GET' | 'POST' | 'PUT' | 'DELETE'
 
 type OpcionesPedido = {
   metodo?: Metodo
@@ -101,6 +101,8 @@ export const api = {
     pedir<T>(ruta, { ...opciones, metodo: 'POST', cuerpo }),
   put: <T>(ruta: string, cuerpo?: unknown, opciones?: Omit<OpcionesPedido, 'metodo' | 'cuerpo'>) =>
     pedir<T>(ruta, { ...opciones, metodo: 'PUT', cuerpo }),
+  borrar: <T>(ruta: string, opciones?: Omit<OpcionesPedido, 'metodo' | 'cuerpo'>) =>
+    pedir<T>(ruta, { ...opciones, metodo: 'DELETE' }),
 }
 
 /** Devuelve el código del error de la API, si lo tiene. */
