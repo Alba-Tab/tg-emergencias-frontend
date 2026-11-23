@@ -1,3 +1,4 @@
+import type { Prioridad } from '../../shared/prioridad/prioridad'
 import { api, type Pagina } from '../../shared/api/cliente'
 import type { EstadoAtencion, MotivoCancelacionAtencion, MotivoSinTraslado } from '../../shared/atencion/api'
 import type { UnidadCandidata } from '../flota/api'
@@ -47,6 +48,8 @@ export type IncidenteResumen = {
   cantidadAlertas: number
   unidades: string[]
   unidadesAcudiendo: number
+  /** Qué tan urgente es según el protocolo. Null si ninguna condición cumplida fijó una prioridad. */
+  prioridad: Prioridad | null
 }
 
 /** `UbicacionResponse` del backend. */

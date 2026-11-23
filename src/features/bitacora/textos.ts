@@ -1,5 +1,6 @@
 import { TEXTO_DE_LA_OPCION, TITULO_DEL_MOTIVO } from '../coordinacion/textos'
 import type { MotivoDeDerivacion, OpcionDeDerivacion } from '../coordinacion/api'
+import { NOMBRE_DE_PRIORIDAD, type Prioridad } from '../../shared/prioridad/prioridad'
 import type { EventoDelCaso, OrigenDelEvento, TipoDeEvento } from './api'
 
 export const TITULO_DEL_EVENTO: Record<TipoDeEvento, string> = {
@@ -120,9 +121,13 @@ export function detalleDelEvento({ tipo, datos }: EventoDelCaso): string | null 
       const ahora = texto(datos, 'unidades')
       const antes = texto(datos, 'unidadesAntes')
       const tipoMinimo = texto(datos, 'tipoMinimo')
+      const prioridad = texto(datos, 'prioridad')
       return [
         ahora && antes && ahora !== antes ? `De ${unidades(antes)} a ${unidades(ahora)}` : ahora ? unidades(ahora) : null,
         tipoMinimo && tipoMinimo !== texto(datos, 'tipoMinimoAntes') ? `al menos una de tipo ${tipoMinimo}` : null,
+        prioridad && prioridad !== texto(datos, 'prioridadAntes')
+          ? `prioridad ${(NOMBRE_DE_PRIORIDAD[prioridad as Prioridad] ?? prioridad).toLowerCase()}`
+          : null,
       ]
         .filter(Boolean)
         .join(' · ') || null

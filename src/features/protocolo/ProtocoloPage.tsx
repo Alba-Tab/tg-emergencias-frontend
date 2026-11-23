@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Button, H2, Input, Label, Paragraph, Spinner, Text, XStack, YStack, useToastController } from 'tamagui'
 import { mensajeDeError } from '../../shared/api/cliente'
 import { fechaHoraCorta } from '../../shared/formato/fechas'
+import { CODIGO_DE_PRIORIDAD, NOMBRE_DE_PRIORIDAD, type Prioridad } from '../../shared/prioridad/prioridad'
 import { BotonPrimario } from '../../shared/ui/botones'
 import { DialogoConfirmacion } from '../../shared/ui/DialogoConfirmacion'
 import { ElegibleCompacto } from '../../shared/ui/ElegibleCompacto'
@@ -21,6 +22,7 @@ import {
 } from './queries'
 
 const TIPOS_DE_UNIDAD: (TipoUnidad | null)[] = [null, 'IA', 'II', 'III']
+const PRIORIDADES_ELEGIBLES: (Prioridad | null)[] = [null, 'VERDE', 'AMARILLA', 'ROJA']
 const CODIGO = /^[A-Z][A-Z0-9_]{1,59}$/
 
 /** Lo mismo que una condición, pero con los números como texto mientras se escriben. */
@@ -44,6 +46,7 @@ const CONDICION_NUEVA: CondicionEnEdicion = {
   derivaAPersona: false,
   cita: '',
   afectadosDesde: '',
+  prioridad: null,
 }
 
 function enEdicion(tipos: TipoDeSuceso[]): TipoEnEdicion[] {
@@ -57,6 +60,7 @@ function enEdicion(tipos: TipoDeSuceso[]): TipoEnEdicion[] {
       umbralPreguntar: String(condicion.umbralPreguntar),
       unidadesAdicionales: String(condicion.unidadesAdicionales),
       afectadosDesde: condicion.afectadosDesde == null ? '' : String(condicion.afectadosDesde),
+      prioridad: condicion.prioridad ?? null,
     })),
   }))
 }
@@ -103,6 +107,7 @@ function paraGuardar(nota: string, tipos: TipoEnEdicion[]): { datos: GuardarProt
         derivaAPersona: condicion.derivaAPersona,
         cita: condicion.cita?.trim() || null,
         afectadosDesde: afectados,
+        prioridad: condicion.prioridad,
       })
     }
     resultado.push({ codigo: tipo.codigo, nombre: tipo.nombre.trim(), condiciones })
@@ -235,6 +240,11 @@ function respuestaDe(condicion: Condicion) {
   }
   if (condicion.tipoMinimo) {
     partes.push(`pide una unidad de tipo ${condicion.tipoMinimo}`)
+  }
+  if (condicion.prioridad) {
+    partes.push(
+      `toma prioridad ${NOMBRE_DE_PRIORIDAD[condicion.prioridad].toLowerCase()} (${CODIGO_DE_PRIORIDAD[condicion.prioridad]})`,
+    )
   }
   if (condicion.derivaAPersona) {
     partes.push('la ve una persona')
@@ -372,6 +382,19 @@ function EditorDelBorrador({ borrador }: { borrador: Protocolo }) {
                       texto={opcion ?? 'Cualquiera'}
                       elegida={condicion.tipoMinimo === opcion}
                       onElegir={() => cambiarCondicion(indiceTipo, indice, { tipoMinimo: opcion })}
+                    />
+                  ))}
+                </XStack>
+                <XStack gap={6} items="center" role="radiogroup" aria-label="Prioridad que toma el caso">
+                  <Text fontSize={13} fontWeight="500" color="$texto">
+                    Prioridad
+                  </Text>
+                  {PRIORIDADES_ELEGIBLES.map((opcion) => (
+                    <ElegibleCompacto
+                      key={opcion ?? 'ninguna'}
+                      texto={opcion ? NOMBRE_DE_PRIORIDAD[opcion] : 'No la cambia'}
+                      elegida={condicion.prioridad === opcion}
+                      onElegir={() => cambiarCondicion(indiceTipo, indice, { prioridad: opcion })}
                     />
                   ))}
                 </XStack>
