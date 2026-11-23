@@ -5,11 +5,13 @@ import {
   IconoAmbulancia,
   IconoAviso,
   IconoCentroSalud,
+  IconoEditar,
   IconoIncidentes,
   IconoMalUso,
   IconoMonitoreo,
   IconoPersonas,
   IconoReportes,
+  IconoResumenIa,
   IconoTarifas,
   IconoTraslados,
   type PropsIcono,
@@ -23,6 +25,8 @@ type Seccion = {
     | '/traslados'
     | '/centro-de-control'
     | '/coordinacion'
+    | '/protocolo'
+    | '/mediciones'
     | '/centros-salud'
     | '/mal-uso'
     | '/reportes'
@@ -39,6 +43,8 @@ const SECCIONES: Seccion[] = [
   { to: '/traslados', etiqueta: 'Traslados', Icono: IconoTraslados },
   { to: '/centro-de-control', etiqueta: 'Centro de control', Icono: IconoMonitoreo },
   { to: '/coordinacion', etiqueta: 'Coordinación', Icono: IconoAviso },
+  { to: '/protocolo', etiqueta: 'Protocolo', Icono: IconoEditar },
+  { to: '/mediciones', etiqueta: 'Mediciones', Icono: IconoResumenIa },
   { to: '/centros-salud', etiqueta: 'Centros de salud', Icono: IconoCentroSalud },
   { to: '/reportes', etiqueta: 'Reportes', Icono: IconoReportes },
   { to: '/tarifas', etiqueta: 'Tarifas', Icono: IconoTarifas },
