@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Button, H2, Input, Label, Paragraph, Spinner, Text, XStack, YStack, useToastController } from 'tamagui'
 import { mensajeDeError } from '../../shared/api/cliente'
 import { fechaHoraCorta } from '../../shared/formato/fechas'
@@ -58,7 +58,9 @@ function enEdicion(tipos: TipoDeSuceso[]): TipoEnEdicion[] {
       cita: condicion.cita ?? '',
       umbralActuar: String(condicion.umbralActuar),
       umbralPreguntar: String(condicion.umbralPreguntar),
-      unidadesAdicionales: String(condicion.unidadesAdicionales),
+      unidadesAdicionales: String(condicion.unidadesAdicionales ?? 0),
+      tipoMinimo: condicion.tipoMinimo ?? null,
+      derivaAPersona: condicion.derivaAPersona ?? false,
       afectadosDesde: condicion.afectadosDesde == null ? '' : String(condicion.afectadosDesde),
       prioridad: condicion.prioridad ?? null,
     })),
@@ -262,6 +264,25 @@ function EditorDelBorrador({ borrador }: { borrador: Protocolo }) {
   const [tipos, setTipos] = useState(() => enEdicion(borrador.tipos))
   const [confirmando, setConfirmando] = useState<'publicar' | 'descartar' | null>(null)
   const ocupado = guardar.isPending || publicar.isPending || descartar.isPending
+  const archivo = useRef<HTMLInputElement>(null)
+
+  /** Pone en pantalla el protocolo de un archivo, con el mismo formato en que se guarda. No guarda nada. */
+  async function cargarArchivo(elegido: File | undefined) {
+    if (!elegido) {
+      return
+    }
+    try {
+      const datos = JSON.parse(await elegido.text()) as Partial<GuardarProtocolo>
+      if (!Array.isArray(datos.tipos)) {
+        throw new Error('sin tipos')
+      }
+      setNota(datos.nota ?? '')
+      setTipos(enEdicion(datos.tipos.map((tipo) => ({ ...tipo, condiciones: tipo.condiciones ?? [] }))))
+      toast.show('Protocolo cargado en el borrador', { message: 'Revísalo y guarda: todavía no se guardó nada.' })
+    } catch {
+      toast.show('No se pudo leer el archivo', { message: 'Tiene que ser un protocolo en formato JSON.' })
+    }
+  }
 
   function cambiarTipo(indice: number, cambios: Partial<TipoEnEdicion>) {
     setTipos((actuales) => actuales.map((tipo, i) => (i === indice ? { ...tipo, ...cambios } : tipo)))
@@ -318,6 +339,19 @@ function EditorDelBorrador({ borrador }: { borrador: Protocolo }) {
           <Insignia tono="ambar">{`Versión ${borrador.version}, sin publicar`}</Insignia>
         </XStack>
         <XStack gap={8} flexWrap="wrap">
+          <input
+            ref={archivo}
+            type="file"
+            accept="application/json,.json"
+            hidden
+            onChange={(evento) => {
+              void cargarArchivo(evento.currentTarget.files?.[0])
+              evento.currentTarget.value = ''
+            }}
+          />
+          <Button size="$3" disabled={ocupado} onPress={() => archivo.current?.click()}>
+            <Button.Text color="$texto">Cargar desde un archivo</Button.Text>
+          </Button>
           <Button size="$3" disabled={ocupado} onPress={() => setConfirmando('descartar')}>
             <Button.Text color="$texto">Descartar</Button.Text>
           </Button>
