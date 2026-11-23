@@ -12,6 +12,7 @@ import { Cargando, ErrorAlCargar } from '../../shared/ui/EstadosDeCarga'
 import { IconoMas, IconoQuitar } from '../../shared/ui/iconos'
 import { Insignia } from '../../shared/ui/Insignia'
 import type { Condicion, GuardarProtocolo, Protocolo, TipoDeSuceso, TipoUnidad } from './api'
+import { RevisionDelAnalista } from './RevisionDelAnalista'
 import {
   abrirBorradorMutation,
   borradorDeProtocoloQuery,
@@ -179,6 +180,7 @@ export function ProtocoloPage() {
               </Paragraph>
             )}
           </YStack>
+          {vigente.data ? <RevisionDelAnalista protocolo={vigente.data} /> : null}
         </>
       )}
     </>
