@@ -492,9 +492,10 @@ type PropsCampo = {
   placeholder?: string
 }
 
+/** Sin ancho va solo en su renglón y ocupa todo el ancho de la columna que lo contiene. */
 function Campo({ etiqueta, valor, onCambiar, ancho, mono = false, placeholder }: PropsCampo) {
   return (
-    <YStack gap={4} width={ancho} flex={ancho ? undefined : 1} minW={ancho ? undefined : 240}>
+    <YStack gap={4} width={ancho}>
       <Label color="$texto" fontSize={12} fontWeight="500" lineHeight={16}>
         {etiqueta}
       </Label>
