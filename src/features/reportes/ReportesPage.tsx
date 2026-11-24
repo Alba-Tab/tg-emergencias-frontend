@@ -129,17 +129,17 @@ function Contenido({ reporte }: { reporte: ReporteDeOperacion }) {
       </XStack>
 
       <XStack gap={16} flexWrap="wrap">
-        <Seccion titulo="Emergencias por estado">
+        <Seccion titulo="Emergencias por estado" enFila>
           {Object.entries(reporte.emergencias.porEstado).map(([estado, n]) => (
             <Renglon key={estado} etiqueta={TEXTO_ESTADO_INCIDENTE[estado as keyof typeof TEXTO_ESTADO_INCIDENTE]} valor={n} />
           ))}
         </Seccion>
-        <Seccion titulo="Traslados por estado">
+        <Seccion titulo="Traslados por estado" enFila>
           {Object.entries(reporte.traslados.porEstado).map(([estado, n]) => (
             <Renglon key={estado} etiqueta={TEXTO_ESTADO_TRASLADO[estado as keyof typeof TEXTO_ESTADO_TRASLADO]} valor={n} />
           ))}
         </Seccion>
-        <Seccion titulo="Tiempos de emergencia">
+        <Seccion titulo="Tiempos de emergencia" enFila>
           <Renglon etiqueta="Hasta que una unidad lo tomó" valor={`${tiempo(t.hastaLaToma.medianaSegundos)} (mediana)`} />
           <Renglon etiqueta="Hasta la llegada, promedio" valor={tiempo(t.hastaLaLlegada.promedioSegundos)} />
           <Renglon etiqueta="Hasta la llegada, mediana" valor={tiempo(t.hastaLaLlegada.medianaSegundos)} />
@@ -243,9 +243,19 @@ function Cifra({ titulo, valor, nota }: { titulo: string; valor: string; nota?: 
   )
 }
 
-function Seccion({ titulo, children }: { titulo: string; children: ReactNode }) {
+/** `enFila` reparte el ancho con las secciones de al lado. Sola en su renglón, ocupa todo el ancho y el alto que pida. */
+function Seccion({ titulo, enFila = false, children }: { titulo: string; enFila?: boolean; children: ReactNode }) {
   return (
-    <YStack flex={1} minW={260} gap={10} bg="$superficie" borderWidth={1} borderColor="$borde" rounded={12} p={20}>
+    <YStack
+      flex={enFila ? 1 : undefined}
+      minW={enFila ? 260 : undefined}
+      gap={10}
+      bg="$superficie"
+      borderWidth={1}
+      borderColor="$borde"
+      rounded={12}
+      p={20}
+    >
       <H2 color="$texto" fontSize={16} lineHeight={22} fontWeight="600">
         {titulo}
       </H2>
